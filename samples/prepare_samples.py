@@ -9,11 +9,10 @@ Please run this script before trying these samples.
 import glob
 import os
 import shutil
-import subprocess
 
 if __name__ == '__main__':
     os.chdir('..')
-    subprocess.check_call('./generate_maf.py')
+    exec(open('./generate_maf.py').read(), {}, {})
     os.chdir('samples')
 
     for d in glob.glob('*/'):
