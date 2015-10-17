@@ -33,6 +33,7 @@ maf - a waf extension for automation of parameterized computational experiments
 # NOTE: coding ISO8859-1 is necessary for attaching maflib at the end of this
 # file.
 
+import io
 import os
 import os.path
 import shutil
@@ -42,7 +43,6 @@ import tarfile
 import waflib.Context
 import waflib.Logs
 
-TAR_NAME = 'maflib.tar'
 NEW_LINE = '#XXX'.encode()
 CARRIAGE_RETURN = '#YYY'.encode()
 ARCHIVE_BEGIN = '#==>\n'.encode()
@@ -94,29 +94,9 @@ def unpack_maflib(directory):
         os.makedirs(os.path.join(directory, 'maflib'))
         os.chdir(directory)
 
-        bz2_name = TAR_NAME + '.bz2'
-        with open(bz2_name, 'wb') as f:
-            f.write(content)
-
-        try:
-            t = tarfile.open(bz2_name)
-        except:
-            try:
-                os.system('bunzip2 ' + bz2_name)
-                t = tarfile.open(TAR_NAME)
-            except:
-                raise Exception('Cannot extract maflib. Check that python bz2 module or bunzip2 command is available.')
-
-        try:
+        f = io.BytesIO(content)
+        with tarfile.open(fileobj=f) as t:
             t.extractall()
-        finally:
-            t.close()
-
-        try:
-            os.remove(bz2_name)
-            os.remove(TAR_NAME)
-        except:
-            pass
 
         maflib_path = os.path.abspath(os.getcwd())
         return maflib_path

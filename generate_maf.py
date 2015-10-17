@@ -26,12 +26,12 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import io
 import os
 import tarfile
 
 TEMPLATE_FILE_NAME = 'maf_template.py'
 TARGET_FILE_NAME = 'maf.py'
-ARCHIVE_FILE_NAME = 'maflib.tar.bz2'
 MAFLIB_PATH = 'maflib'
 
 NEW_LINE = '#XXX'.encode()
@@ -42,18 +42,18 @@ ARCHIVE_END = '#<==\n#'.encode()
 
 if __name__ == '__main__':
     try:
-        archive = tarfile.open(ARCHIVE_FILE_NAME, 'w:bz2')
+        f = io.BytesIO()
+        archive = tarfile.open(fileobj=f, mode='w:bz2')
         archive.add(MAFLIB_PATH, exclude=lambda fn: fn.endswith('.pyc'))
     except tarfile.TarError:
         raise Exception('can not use tar.bz2 file')
     finally:
         archive.close()
-   
+
+    archive = f.getvalue()
+
     with open(TEMPLATE_FILE_NAME) as f:
         code = f.read()
-
-    with open(ARCHIVE_FILE_NAME, 'rb') as f:
-        archive = f.read()
 
     code += '#==>\n#'.encode()
     code += archive.replace('\n'.encode(), NEW_LINE).replace('\r'.encode(), CARRIAGE_RETURN)
@@ -61,5 +61,3 @@ if __name__ == '__main__':
 
     with open(TARGET_FILE_NAME, 'wb') as f:
         f.write(code)
-
-    os.unlink(ARCHIVE_FILE_NAME)
